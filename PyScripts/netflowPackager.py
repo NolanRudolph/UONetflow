@@ -1,3 +1,10 @@
+"""
+Author: Nolan Rudolph
+
+University of Oregon Netflow to Packet Converter
+
+"""
+
 import sys, random
 from scapy.all import *
 from scapy.contrib.igmp import *

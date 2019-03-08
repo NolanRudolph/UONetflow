@@ -1,3 +1,10 @@
+"""
+Author: Nolan Rudolph
+
+University of Oregon Netflow Aggregation Tool
+
+"""
+
 import sys
 
 
