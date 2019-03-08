@@ -1,0 +1,4 @@
+sudo service grafana-server start
+sudo systemctl start mysqld
+mysql -u root -p
+$ cd /usr/bin ; ./mysql-workbench
