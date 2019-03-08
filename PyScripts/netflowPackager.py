@@ -50,6 +50,7 @@ def main():
             if char == ":":
                 p = gen_IPv6(src_IP, dst_IP, src_port, dst_port, IP_prot, TCP_flags, num_packets, bytes, dTime)
                 is_ipv6 = True
+                break
 
         if not is_ipv6:
             p = gen_IPv4(src_IP, dst_IP, src_port, dst_port, IP_prot, TOS_val, TCP_flags, num_packets, bytes, dTime)
