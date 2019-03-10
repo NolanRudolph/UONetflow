@@ -1,0 +1,8 @@
+-= Starting Grafana and Running on Port 3000 =-
+sudo service grafana-server start
+sudo systemctl start mysqld
+sudo systemctl enable mysqld
+
+
+-= Logging into MySQL =-
+mysql -u root -p

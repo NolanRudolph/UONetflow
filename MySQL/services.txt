@@ -1,4 +1,0 @@
-systemctl start mysqld
-systemctl enable mysqld
-
-Service runs on port 3306

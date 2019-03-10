@@ -1,0 +1,30 @@
+-= Running mysql as a server on port 3306 (default) =-
+
+systemctl start mysqld
+systemctl enable mysqld
+
+
+-= Importing data to MySQL =-
+
+mysql -u root -ppassword < tableToCreate.sql
+mysqlimport -u root -ppassword --local --fields-terminated-by=, database fileThatIsAlsoTheNameOfTheSpecefiedTable
+
+* Note: You'll receive a skepticism inducing number of warnings. This is simply because a lot of the fields could be int or float, however I have made some of them varchar to allow as a metric column for Grafana (i.e. IP Protocol Number or Source Port)
+
+If you receive "mysqlimport: Error: 1148, The used command is not allowed with this MySQL version, when using table: [TABLE]", login to your mysql server and type: SET GLOBAL local_infile=1;
+
+
+-= Finding Windows for Grafana =-
+
+1. Find Epoch Windows
+mysql> select startTime from [TABLE] LIMIT I1;  # This will be the start time
+mysql> select startTime from [TABLE] ORDER BY startTime DESC LIMIT 1;
+
+2. Find Regular Windows of Epoch Format
+Grab both of those epoch times and throw it into https://www.epochconverter.com/timezones?q=1526287199.23&tz=America%2FLos_Angeles
+
+3. Configure Grafana to display within this time period
+* Note: If you have multiple graphs in different time frames, UTILIZE TIME SHIFT. The time shift pushes forward, implying a timeshift application to graphs made prior to future timestamps.
+
+
+4. Profit

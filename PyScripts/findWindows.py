@@ -9,7 +9,11 @@ import sys
 
 
 def main():
-    f = open(sys.argv[1], "r")
+    try:
+        f = open(sys.argv[1], "r")
+    except IndexError:
+        print("Please use as $ python createWindows.py [FILE]")
+        return None
 
     last_time = 0
     total_entries = 0
