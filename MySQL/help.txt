@@ -26,5 +26,4 @@ Grab both of those epoch times and throw it into https://www.epochconverter.com/
 3. Configure Grafana to display within this time period
 * Note: If you have multiple graphs in different time frames, UTILIZE TIME SHIFT. The time shift pushes forward, implying a timeshift application to graphs made prior to future timestamps.
 
-
 4. Profit
