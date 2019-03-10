@@ -1,6 +1,4 @@
-USE netflow;
-
-CREATE TABLE segData3(
+CREATE TABLE segData(
 	startTime double,
 	endTime double,
 	srcIP varchar(16),
