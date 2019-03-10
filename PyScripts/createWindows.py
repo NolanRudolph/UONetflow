@@ -75,7 +75,7 @@ def create_windows(f, split_time, briefing, offset, location):
             if seg - base_time < split_time:
                 newF.write(entry)
             else:
-                print(str(seg) + " is more than " + split_time + " second(s) larger than " + str(base_time) + " -- " + str(seg-base_time))
+                print(str(seg) + " is more than " + str(split_time) + " second(s) larger than " + str(base_time) + " -- " + str(seg-base_time))
                 base_time = seg
                 split_count += 1
                 newF = open("./" + location + "/segData" + str(split_count) + ".csv", "w+")

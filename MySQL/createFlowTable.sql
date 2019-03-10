@@ -1,4 +1,4 @@
-CREATE TABLE segData(
+CREATE TABLE UONETFLOW(
 	startTime double,
 	endTime double,
 	srcIP varchar(16),
