@@ -14,7 +14,7 @@ def main():
     try:
         f_in = open(sys.argv[1], "r")
     except IndexError:
-        print("Please run as $ python findAnomalies.py [FILE]")
+        print("Please run as $ python " + sys.argv[0] + " [FILE]")
         return None
 
     f_out = open("summary.txt", "w+")

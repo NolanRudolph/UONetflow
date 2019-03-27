@@ -14,7 +14,7 @@ def main():
         f = sys.argv[1]
         f_in = open(f, "r")
     except IndexError:
-        print("Please use as $ python createWindows.py [FILE]")
+        print("Please use as $ python " + sys.argv[0] + " [FILE]")
         return None
 
     f_name = f.split(".")

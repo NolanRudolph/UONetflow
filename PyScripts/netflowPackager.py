@@ -7,8 +7,9 @@ University of Oregon Netflow to Packet Converter
 
 import sys, random
 from scapy.all import *
-from scapy.contrib.igmp import *
+from scapy.contrib.igmp import IGMP
 from scapy.contrib.bgp import *
+from scapy.contrib.ospf import OSPF_Hello
 
 packets = []
 
@@ -28,9 +29,12 @@ def main():
         end_time = float(entry[1])
         src_IP = str(entry[2])
         dst_IP = str(entry[3])
-        src_port = int(float(entry[4]))
-        dst_port = int(float(entry[5]))
+        src_port = int(entry[4])
         IP_prot = int(entry[6])
+        if IP_prot == 1 or IP_prot == 2 or IP_prot == 58:
+            dst_port = str(entry[5])
+        else:
+            dst_port = int(entry[5])
         TOS_val = int(entry[7])
         TCP_flags = int(entry[8])
         num_packets = int(entry[9])
@@ -55,11 +59,16 @@ def main():
         if not is_ipv6:
             p = gen_IPv4(src_IP, dst_IP, src_port, dst_port, IP_prot, TOS_val, TCP_flags, num_packets, bytes, dTime)
 
-        # Add other attributes to be utilized in visualizations that couldn't be utilized by Scapy
+        # Currently learning how to add other packet attributes
+        """
         p.router_in = router_in
         p.router_out = router_out
         p.src_ASN = src_ASN
         p.dst_ASN = dst_ASN
+        """
+
+        # Add a beginning time attribute via p.time
+        p.time = start_time
 
         for _ in range(num_packets):
             packets.append(p)
@@ -72,7 +81,7 @@ def main():
 def get_time(start, end):
     return end - start
 
-def calc_IPv4_overhead(IP_prot, src_IP, dst_IP, src_port, dst_port, TOS_val, TCP_flags, packets, dTime):
+def calc_IPv4_overhead(IP_prot, src_IP, dst_IP, src_port, dst_port, TOS_val, TCP_flags, dTime):
     # Init packet
     p = IP()
 
@@ -80,42 +89,45 @@ def calc_IPv4_overhead(IP_prot, src_IP, dst_IP, src_port, dst_port, TOS_val, TCP
     if IP_prot == 1:
         # * This will only work with University of Oregon ICMP Netflow *
         # Discard for other netflows, or derive type and code another way
-        type, code = dst_port.split('.')
 
-        p = IP(src=src_IP, dst=dst_IP, proto=IP_prot, tos=TOS_val, chksum=packets) / \
+        temp = dst_port.split('.')
+        type, code = int(temp[0]), int(temp[1])
+
+        p = IP(src=src_IP, dst=dst_IP, proto=IP_prot, tos=TOS_val) / \
             ICMP(type=type, code=code)
 
     # IGMP Protocol
     if IP_prot == 2:
-        # * This will only work with University of Oregon ICMP Netflow *
+        # * This will only work with University of Oregon IGMP Netflow *
         # Discard for other netflows, or derive type and code another way
-        type, code = dst_port.split('.')
+        temp = dst_port.split('.')
+        type, code = int(temp[0]), int(temp[1])
 
-        p = IP(src=src_IP, dst=dst_IP, proto=IP_prot, tos=TOS_val, chksum=packets) / \
+        p = IP(src=src_IP, dst=dst_IP, proto=IP_prot, tos=TOS_val) / \
             IGMP(type=type, mrcode=code)
 
     # TCP Protocol
     elif IP_prot == 6:
 
-        p = IP(src=src_IP, dst=dst_IP, proto=IP_prot, tos=TOS_val, chksum=packets) / \
+        p = IP(src=src_IP, dst=dst_IP, proto=IP_prot, tos=TOS_val) / \
             TCP(sport=src_port, dport=dst_port, flags=TCP_flags, window=dTime)
 
     # UDP Protocol
     elif IP_prot == 17:
 
-        p = IP(src=src_IP, dst=dst_IP, proto=IP_prot, tos=TOS_val, chksum=packets) / \
+        p = IP(src=src_IP, dst=dst_IP, proto=IP_prot, tos=TOS_val) / \
             UDP(sport=src_port, dport=dst_port)
 
     # GRE (Generic Routing Encapsulation) Protocol
     elif IP_prot == 47:
 
-        p = IP(src=src_IP, dst=dst_IP, proto=IP_prot, tos=TOS_val, chksum=packets) / \
+        p = IP(src=src_IP, dst=dst_IP, proto=IP_prot, tos=TOS_val) / \
             GRE()
 
     # ESP (Encapsulating Security Payload) Protocol
     elif IP_prot == 50:
 
-        p = IP(src=src_IP, dst=dst_IP, proto=IP_prot, tos=TOS_val, chksum=packets) / \
+        p = IP(src=src_IP, dst=dst_IP, proto=IP_prot, tos=TOS_val) / \
             ESP()
 
     # Rare packets
@@ -135,16 +147,18 @@ def calc_IPv6_overhead(IP_prot, src_IP, dst_IP, src_port, dst_port, TCP_flags, d
     if IP_prot == 1:
         # * This will only work with University of Oregon ICMP Netflow *
         # Discard for other netflows, or derive type and code another way
-        type, code = dst_port.split('.')
+        temp = dst_port.split('.')
+        type, code = int(temp[0]), int(temp[1])
 
         p = IPv6(src=src_IP, dst=dst_IP, nh=IP_prot) / \
             ICMP(type=type, code=code)
 
     # IGMP Protocol
     if IP_prot == 2:
-        # * This will only work with University of Oregon ICMP Netflow *
+        # * This will only work with University of Oregon IGMP Netflow *
         # Discard for other netflows, or derive type and code another way
-        type, code = dst_port.split('.')
+        temp = dst_port.split('.')
+        type, code = int(temp[0]), int(temp[1])
 
         p = IPv6(src=src_IP, dst=dst_IP, nh=IP_prot) / \
             IGMP(type=type, mrcode=code)
@@ -159,7 +173,7 @@ def calc_IPv6_overhead(IP_prot, src_IP, dst_IP, src_port, dst_port, TCP_flags, d
     elif IP_prot == 17:
 
         p = IPv6(src=src_IP, dst=dst_IP, nh=IP_prot) / \
-            UDP(sport=src_port, dport=dst_port, window=dTime)
+            UDP(sport=src_port, dport=dst_port)
 
     # GRE (Generic Routing Encapsulation) Protocol
     elif IP_prot == 47:
@@ -175,9 +189,10 @@ def calc_IPv6_overhead(IP_prot, src_IP, dst_IP, src_port, dst_port, TCP_flags, d
 
     # ICMP Protocol for IPv6
     elif IP_prot == 58:
-        # * This will only work with University of Oregon ICMP Netflow *
-        # Discard for other netflows, or derive type and code another way
-        type, code = dst_port.split('.')
+        # * This will only work with University of Oregon IPv6 ICMP Netflow *
+        # Discard for other netflows, derive type and code another way, or disregard type & code attributes
+        temp = dst_port.split('.')
+        type, code = int(temp[0]), int(temp[1])
 
         p = IPv6(src=src_IP, dst=dst_IP, nh=IP_prot) / \
             ICMP(type=type, code=code)
@@ -198,9 +213,10 @@ def gen_IPv4(src_IP, dst_IP, src_port, dst_port, IP_prot, TOS_val, TCP_flags, pa
     # Init packet
     p = IP()
 
-    overhead = calc_IPv4_overhead(IP_prot, src_IP, dst_IP, src_port, dst_port, TOS_val, TCP_flags, packets, dTime)
+    overhead = calc_IPv4_overhead(IP_prot, src_IP, dst_IP, src_port, dst_port, TOS_val, TCP_flags, dTime)
 
     # This creates a tiny degree of error
+
     bytes_left = bytes - len(overhead) * packets
     packet_size = int(bytes_left/packets)
 
@@ -208,39 +224,41 @@ def gen_IPv4(src_IP, dst_IP, src_port, dst_port, IP_prot, TOS_val, TCP_flags, pa
     payload = bytearray(random.getrandbits(8) for _ in xrange(packet_size))
 
     if IP_prot == 1:
-        type, code = dst_port.split('.')
+        temp = dst_port.split('.')
+        type, code = int(temp[0]), int(temp[1])
 
-        p = IP(src=src_IP, dst=dst_IP, proto=IP_prot, tos=TOS_val, chksum=packets) / \
+        p = IP(src=src_IP, dst=dst_IP, proto=IP_prot, tos=TOS_val) / \
             ICMP(type=type, code=code, length=packet_size) / Raw(payload)
 
     elif IP_prot == 2:
-        type, code = dst_port.split('.')
+        temp = dst_port.split('.')
+        type, code = int(temp[0]), int(temp[1])
 
-        p = IP(src=src_IP, dst=dst_IP, proto=IP_prot, tos=TOS_val, chksum=packets) / \
+        p = IP(src=src_IP, dst=dst_IP, proto=IP_prot, tos=TOS_val) / \
             IGMP(type=type, mrcode=code) / Raw(payload)
 
     elif IP_prot == 6:
 
-        p = IP(src=src_IP, dst=dst_IP, proto=IP_prot, tos=TOS_val, chksum=packets) / \
+        p = IP(src=src_IP, dst=dst_IP, proto=IP_prot, tos=TOS_val) / \
             TCP(sport=src_port, dport=dst_port, flags=TCP_flags) / Raw(payload)
 
     elif IP_prot == 17:
 
-        p = IP(src=src_IP, dst=dst_IP, proto=IP_prot, tos=TOS_val, chksum=packets) / \
+        p = IP(src=src_IP, dst=dst_IP, proto=IP_prot, tos=TOS_val) / \
             UDP(sport=src_port, dport=dst_port, len=packet_size) / Raw(payload)
 
     elif IP_prot == 47:
 
-        p = IP(src=src_IP, dst=dst_IP, proto=IP_prot, tos=TOS_val, chksum=packets) / \
+        p = IP(src=src_IP, dst=dst_IP, proto=IP_prot, tos=TOS_val) / \
             GRE() / Raw(payload)
 
     elif IP_prot == 50:
 
-        p = IP(src=src_IP, dst=dst_IP, proto=IP_prot, tos=TOS_val, chksum=packets) / \
+        p = IP(src=src_IP, dst=dst_IP, proto=IP_prot, tos=TOS_val) / \
             ESP(data=payload)
 
     else:
-        p = IP(src=src_IP, dst=dst_IP, proto=IP_prot, tos=TOS_val, chksum=packets) / \
+        p = IP(src=src_IP, dst=dst_IP, proto=IP_prot, tos=TOS_val) / \
             Raw(payload)
 
     return p
@@ -250,7 +268,7 @@ def gen_IPv6(src_IP, dst_IP, src_port, dst_port, IP_prot, TCP_flags, packets, by
     # Init packet
     p = IPv6()
 
-    overhead = calc_IPv6_overhead(IP_prot, src_IP, dst_IP, src_port, dst_port, TCP_flags, packets)
+    overhead = calc_IPv6_overhead(IP_prot, src_IP, dst_IP, src_port, dst_port, TCP_flags, dTime)
 
     # This creates a tiny degree of error
     bytes_left = bytes - len(overhead) * packets
@@ -260,13 +278,15 @@ def gen_IPv6(src_IP, dst_IP, src_port, dst_port, IP_prot, TCP_flags, packets, by
     payload = bytearray(random.getrandbits(8) for _ in xrange(packet_size))
 
     if IP_prot == 1:
-        type, code = dst_port.split('.')
+        temp = dst_port.split('.')
+        type, code = int(temp[0]), int(temp[1])
 
         p = IPv6(src=src_IP, dst=dst_IP, nh=IP_prot) / \
             ICMP(type=type, code=code, length=packet_size) / Raw(payload)
 
     elif IP_prot == 2:
-        type, code = dst_port.split('.')
+        temp = dst_port.split('.')
+        type, code = int(temp[0]), int(temp[1])
 
         p = IPv6(src=src_IP, dst=dst_IP, nh=IP_prot) / \
             IGMP(type=type, mrcode=code) / Raw(payload)
@@ -291,7 +311,8 @@ def gen_IPv6(src_IP, dst_IP, src_port, dst_port, IP_prot, TCP_flags, packets, by
             ESP(data=payload)
 
     elif IP_prot == 58:
-        type, code = dst_port.split('.')
+        temp = dst_port.split('.')
+        type, code = int(temp[0]), int(temp[1])
 
         p = IPv6(src=src_IP, dst=dst_IP, nh=IP_prot) / \
             ICMP(type=type, code=code) / \
@@ -303,6 +324,7 @@ def gen_IPv6(src_IP, dst_IP, src_port, dst_port, IP_prot, TCP_flags, packets, by
             Raw(payload)
 
     return p
+
 
 if __name__ == "__main__":
     main()

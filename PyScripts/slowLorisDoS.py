@@ -23,7 +23,7 @@ def main():
         start_window = float(sys.argv[3])
         end_window = float(sys.argv[4])
     except IndexError:
-        print("Please use as $ python isolateWindow.py [FILE] [BRIEF] [START TIME] [END TIME] (both in epoch format)")
+        print("Please use as $ python " + sys.argv[0] + " [FILE] [BRIEF] [START TIME] [END TIME] (both in epoch format)")
         return None
 
     forge_connections(f_in)

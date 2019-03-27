@@ -17,7 +17,7 @@ def main():
         offset = int(sys.argv[4])
         location = sys.argv[5]
     except IndexError:
-        print("Please use $ python createWindows.py [FILE] [AGGREGATION TIME IN SECONDS] [BRIEFING] [OFFSET] [DESTINATION]")
+        print("Please use $ python " + sys.argv[0] + " [FILE] [AGGREGATION TIME IN SECONDS] [BRIEFING] [OFFSET] [DESTINATION]")
         print("FILE: The file you want to read from.")
         print("AGGREGATION TIME IN SECONDS: What time interval would you like to aggregate by?")
         print("BRIEFING: Provides a space the length of [AGGREGATION TIME IN SECONDS] between time intervals.")

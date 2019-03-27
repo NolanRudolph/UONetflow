@@ -15,7 +15,7 @@ def main():
         start_window = float(sys.argv[2])
         end_window = float(sys.argv[3])
     except IndexError:
-        print("Please use as $ python isolateWindow.py [FILE] [START TIME] [END TIME] (both in epoch format)")
+        print("Please use as $ python " + sys.argv[0] + " [FILE] [START TIME] [END TIME] (both in epoch format)")
         return None
 
     f_name = f.split(".")
